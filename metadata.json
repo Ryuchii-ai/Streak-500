@@ -1,0 +1,6 @@
+{
+  "name": "500 Days Streak Celebration 3D",
+  "description": "Ucapan 3D interaktif congrats api streak 500 hari dengan meja pesta, bingkai foto memori, kartu ucapan, dan animasi konfeti realistis.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
