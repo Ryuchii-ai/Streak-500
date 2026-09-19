@@ -9,11 +9,14 @@ import { musicManager } from './utils/musicManager';
 
 export default function App() {
   const [greeting, setGreeting] = useState<GreetingData>({
-    recipient: 'Hani',
-    sender: 'Bestie & Teman Seperjuangan',
+    recipient: 'Hani (@lauu)',
+    sender: 'Rahulll',
     title: 'CONGRATS 500 DAYS STREAK!',
-    message:
-      'Selamat atas pencapaian luar biasa 500 hari streak tanpa putus! 🔥\nSetiap hari dedikasi, kerja keras, dan komitmenmu membuktikan konsistensi tanpa batas.\nTerus jaga api semangatmu agar tetap menyala membara ke hari-hari berikutnya!',
+    message: `what i've been trying to hold onto all this time wasn't the streak.
+it was never really about the streak....
+because all this time...it was always....
+
+and im sorry if i've made you confused all this time. BUT please believe me...deep down, im still the same. I haven't changed`,
     streakDays: 500,
     dateStr: new Date().toLocaleDateString('id-ID', {
       day: 'numeric',
@@ -22,32 +25,95 @@ export default function App() {
     }),
   });
 
-  const [photos, setPhotos] = useState<PhotoFrameData[]>([
+  const DEFAULT_PHOTOS: PhotoFrameData[] = [
     {
       id: 1,
-      title: 'Awal Langkah (Day 125)',
-      caption: 'Komitmen awal yang penuh tekad dan semangat.',
-      url: '',
+      title: 'Day 100 (awal)',
+      caption: 'Lencana Runtunan telah ditingkatkan @lauu • 100 Hari obrolan yang sedang berlangsung',
+      url: '/assets/api-100.svg',
     },
     {
       id: 2,
-      title: 'Konsisten (Day 250)',
-      caption: 'Melewati berbagai tantangan tanpa memadamkan api.',
-      url: '',
+      title: 'Day 300 (running)',
+      caption: 'Lencana Runtunan telah ditingkatkan @lauu • 300 Hari obrolan • Pesan terkirim 10,8 RB • Hari pertemanan 303',
+      url: '/assets/api-300.svg',
     },
     {
       id: 3,
-      title: 'Membara (Day 375)',
-      caption: 'Disiplin mengakar kuat menjadi kebiasaan emas.',
-      url: '',
+      title: 'Day 400 (always)',
+      caption: 'Lencana Runtunan telah ditingkatkan @lauu • 400 Hari obrolan • Pesan terkirim 11,4 RB • Hari pertemanan 413',
+      url: '/assets/api-400.svg',
     },
     {
       id: 4,
-      title: 'Legenda 500 Hari!',
-      caption: '500 hari api menyala tanpa henti. Selamat!',
-      url: '',
+      title: 'Day 500 (still...)',
+      caption: 'Lencana Runtunan telah ditingkatkan @lauu • 500 Hari obrolan • Pesan terkirim 12,1 rb • Hari pertemanan 540',
+      url: '/assets/api-500.svg',
     },
-  ]);
+  ];
+
+  const [photos, setPhotos] = useState<PhotoFrameData[]>(() => {
+    try {
+      const saved = localStorage.getItem('streak_photos_custom');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length === 4) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return DEFAULT_PHOTOS;
+  });
+
+  const handleUpdatePhoto = (index: number, updated: Partial<PhotoFrameData>) => {
+    setPhotos((prev) => {
+      const copy = [...prev];
+      copy[index] = { ...copy[index], ...updated };
+      try {
+        localStorage.setItem('streak_photos_custom', JSON.stringify(copy));
+      } catch (err) {
+        console.warn('Could not save to localStorage', err);
+      }
+      return copy;
+    });
+  };
+
+  // Auto-detect if user uploaded api-*.jpg files directly into public assets
+  useEffect(() => {
+    const checkFile = async (path: string) => {
+      try {
+        const res = await fetch(path, { method: 'HEAD' });
+        return res.ok;
+      } catch {
+        return false;
+      }
+    };
+    const detectJpgs = async () => {
+      const candidates = [
+        { index: 0, paths: ['/assets/api-100.jpg', '/api-100.jpg'] },
+        { index: 1, paths: ['/assets/api-300.jpg', '/api-300.jpg'] },
+        { index: 2, paths: ['/assets/api-400.jpg', '/api-400.jpg'] },
+        { index: 3, paths: ['/assets/api-500.jpg', '/api-500.jpg'] },
+      ];
+      for (const item of candidates) {
+        for (const p of item.paths) {
+          const exists = await checkFile(p);
+          if (exists) {
+            setPhotos((prev) => {
+              if (prev[item.index].url === p) return prev;
+              const next = [...prev];
+              next[item.index] = { ...next[item.index], url: p };
+              return next;
+            });
+            break;
+          }
+        }
+      }
+    };
+    detectJpgs();
+  }, []);
 
   const [isFlameLit, setIsFlameLit] = useState<boolean>(true);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
@@ -103,15 +169,6 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleToggleFlame]);
 
-  // Update specific photo frame
-  const handleUpdatePhoto = (index: number, updated: Partial<PhotoFrameData>) => {
-    setPhotos((prev) => {
-      const copy = [...prev];
-      copy[index] = { ...copy[index], ...updated };
-      return copy;
-    });
-  };
-
   return (
     <main
       id="celebration-app-root"
@@ -152,6 +209,7 @@ export default function App() {
         onClose={() => setSelectedPhotoIndex(null)}
         photos={photos}
         onSelectPhoto={(idx) => setSelectedPhotoIndex(idx)}
+        onUpdatePhoto={handleUpdatePhoto}
       />
     </main>
   );

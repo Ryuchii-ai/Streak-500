@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { PhotoFrameData } from '../types';
-import { X, ChevronLeft, ChevronRight, Image as ImageIcon, Flame, Award, Zap, Crown } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Image as ImageIcon, Flame, Award, Zap, Crown, Upload, RotateCcw } from 'lucide-react';
 
 interface Props {
   selectedIndex: number | null;
@@ -15,7 +15,11 @@ export const PhotoDetailModal: React.FC<Props> = ({
   onClose,
   photos,
   onSelectPhoto,
+  onUpdatePhoto,
 }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
   if (selectedIndex === null) return null;
 
   const currentPhoto = photos[selectedIndex];
@@ -37,34 +41,86 @@ export const PhotoDetailModal: React.FC<Props> = ({
     }
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && onUpdatePhoto) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const dataUrl = event.target?.result as string;
+        onUpdatePhoto(selectedIndex, { url: dataUrl });
+      };
+      reader.readAsDataURL(file);
+    }
+    // reset input value so re-uploading same file triggers change
+    e.target.value = '';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file && onUpdatePhoto) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const dataUrl = event.target?.result as string;
+        onUpdatePhoto(selectedIndex, { url: dataUrl });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const defaultAssetUrls = [
+    '/assets/api-100.svg',
+    '/assets/api-300.svg',
+    '/assets/api-400.svg',
+    '/assets/api-500.svg',
+  ];
+
+  const isCustomPhoto = currentPhoto.url && !defaultAssetUrls.includes(currentPhoto.url);
+
+  const handleResetPhoto = () => {
+    if (onUpdatePhoto) {
+      onUpdatePhoto(selectedIndex, { url: defaultAssetUrls[selectedIndex] || '' });
+    }
+  };
+
   const milestoneInfo = [
     {
-      days: 125,
+      days: 100,
       icon: <Flame className="w-5 h-5 text-orange-400" />,
       color: 'from-orange-500 to-amber-600',
-      badge: 'Fase 1: Komitmen Awal',
-      quote: 'Langkah awal 125 hari membakar keraguan dan menyalakan konsistensi sejati.',
+      badge: 'Day 100 (awal)',
+      quote: 'Langkah awal 100 hari menyalakan api konsistensi yang tulus.',
     },
     {
-      days: 250,
-      icon: <Award className="w-5 h-5 text-amber-400" />,
-      color: 'from-amber-500 to-yellow-600',
-      badge: 'Fase 2: Konsistensi Kuat',
-      quote: 'Setengah jalan menuju 500 hari, tekad telah tertempa menjadi kebiasaan tak tergoyahkan.',
+      days: 300,
+      icon: <Award className="w-5 h-5 text-purple-400" />,
+      color: 'from-purple-500 to-fuchsia-600',
+      badge: 'Day 300 (running)',
+      quote: '300 hari obrolan & 10,8 RB pesan, terus berlari tanpa ragu.',
     },
     {
-      days: 375,
-      icon: <Zap className="w-5 h-5 text-yellow-400" />,
-      color: 'from-yellow-500 to-orange-600',
-      badge: 'Fase 3: Api Membara',
-      quote: 'Disiplin mengakar kuat dalam setiap tantangan, membakar semangat setiap fajar.',
+      days: 400,
+      icon: <Zap className="w-5 h-5 text-pink-400" />,
+      color: 'from-fuchsia-500 to-pink-600',
+      badge: 'Day 400 (always)',
+      quote: 'Always... karena sejak dulu hingga kini, itu selalu tentang kamu.',
     },
     {
       days: 500,
       icon: <Crown className="w-5 h-5 text-amber-300" />,
-      color: 'from-amber-400 to-red-600',
-      badge: 'Puncak Legenda: 500 Hari!',
-      quote: 'Pencapaian emas 500 hari streak tanpa putus. Bukti nyata dedikasi dan tekad baja!',
+      color: 'from-purple-600 to-pink-600',
+      badge: 'Day 500 (still...)',
+      quote: '500 Hari: "deep down, im still the same. I haven\'t changed"',
     },
   ][selectedIndex % 4];
 
@@ -102,13 +158,31 @@ export const PhotoDetailModal: React.FC<Props> = ({
           </span>
         </div>
 
-        {/* Photo Display Card with Golden Wood Bevel */}
-        <div className="relative aspect-[3/4] w-full max-h-80 mx-auto bg-stone-950 rounded-2xl overflow-hidden border-4 border-amber-900/40 shadow-2xl flex items-center justify-center mb-4 group">
+        {/* Hidden File Input */}
+        <input
+          type="file"
+          ref={fileInputRef}
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileChange}
+        />
+
+        {/* Photo Display Card with Golden Wood Bevel and Drag & Drop */}
+        <div
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={`relative aspect-[9/16] w-full max-h-[380px] mx-auto bg-stone-950 rounded-2xl overflow-hidden border-4 shadow-2xl flex items-center justify-center mb-3 group transition-all ${
+            isDragging
+              ? 'border-amber-400 ring-4 ring-amber-400/40 scale-[1.01]'
+              : 'border-amber-900/40'
+          }`}
+        >
           {currentPhoto.url ? (
             <img
               src={currentPhoto.url}
               alt={currentPhoto.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain bg-[#eed5fc]"
             />
           ) : (
             <div
@@ -147,6 +221,14 @@ export const PhotoDetailModal: React.FC<Props> = ({
             </div>
           )}
 
+          {/* Drag Overlay indicator */}
+          {isDragging && (
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-xs flex flex-col items-center justify-center text-amber-300 font-bold text-sm z-20 pointer-events-none animate-pulse">
+              <Upload className="w-8 h-8 mb-2 text-amber-400" />
+              Lepaskan file foto di sini!
+            </div>
+          )}
+
           {/* Prev / Next Navigation Arrows */}
           {onSelectPhoto && totalPhotos > 1 && (
             <>
@@ -165,6 +247,31 @@ export const PhotoDetailModal: React.FC<Props> = ({
                 <ChevronRight className="w-4 h-4" />
               </button>
             </>
+          )}
+        </div>
+
+        {/* Action Bar: Upload Real Photo / Reset */}
+        <div className="flex items-center gap-2 mb-3">
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="flex-1 flex items-center justify-center gap-2 py-2 px-3 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded-xl text-xs font-semibold transition-all active:scale-98"
+            title="Pilih file gambar asli dari perangkat"
+          >
+            <Upload className="w-3.5 h-3.5" />
+            <span>Ganti Foto Ini (Pilih File)</span>
+          </button>
+
+          {isCustomPhoto && (
+            <button
+              type="button"
+              onClick={handleResetPhoto}
+              className="py-2 px-3 bg-stone-800 hover:bg-stone-700 text-stone-300 border border-stone-700 rounded-xl text-xs font-medium transition-all flex items-center gap-1.5 active:scale-98"
+              title="Kembalikan ke ilustrasi bawaan"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Reset</span>
+            </button>
           )}
         </div>
 
