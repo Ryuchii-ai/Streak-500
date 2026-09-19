@@ -146,20 +146,30 @@ and im sorry if i've made you confused all this time. BUT please believe me...de
   // Spacebar hotkey listener (matching "PRESS SPACE TO BLOW OUT CANDLE / CELEBRATE")
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger if modal is open
+      if (isCardOpen || selectedPhotoIndex !== null) {
+        return;
+      }
+
       // Don't trigger if user is typing in an input field or textarea
-      const target = e.target as HTMLElement;
+      const target = e.target as HTMLElement | null;
       if (
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.isContentEditable
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable)
       ) {
         return;
       }
 
-      if (e.code === 'Space') {
+      if (e.code === 'Space' || e.key === ' ' || e.keyCode === 32) {
         e.preventDefault();
+        // If a button is focused, blur it so it doesn't fire a second synthetic click
+        if (target && typeof target.blur === 'function') {
+          target.blur();
+        }
         handleToggleFlame();
-      } else if (e.code === 'KeyM') {
+      } else if (e.code === 'KeyM' || e.key === 'm' || e.key === 'M') {
         e.preventDefault();
         musicManager.togglePlay();
       }
@@ -167,7 +177,7 @@ and im sorry if i've made you confused all this time. BUT please believe me...de
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleToggleFlame]);
+  }, [handleToggleFlame, isCardOpen, selectedPhotoIndex]);
 
   return (
     <main

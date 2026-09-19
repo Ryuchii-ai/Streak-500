@@ -43,6 +43,44 @@ export const Celebration3DScene: React.FC<Props> = ({
   const photoMeshesRef = useRef<THREE.Mesh[]>([]);
   const cardMeshRef = useRef<THREE.Mesh | null>(null);
   const cakeMeshRef = useRef<THREE.Group | null>(null);
+  const isFlameLitRef = useRef<boolean>(isFlameLit);
+  const onToggleFlameRef = useRef(onToggleFlame);
+  const onSelectPhotoRef = useRef(onSelectPhoto);
+  const onOpenCardRef = useRef(onOpenCard);
+
+  // Sync refs when props update
+  useEffect(() => {
+    isFlameLitRef.current = isFlameLit;
+    if (flameGroupRef.current) {
+      flameGroupRef.current.visible = isFlameLit;
+    }
+    if (embersPointsRef.current) {
+      embersPointsRef.current.visible = isFlameLit;
+    }
+    if (smokeParticlesRef.current) {
+      smokeParticlesRef.current.visible = !isFlameLit;
+      if (!isFlameLit) {
+        // Reset puff of smoke positions when candle is blown out
+        const positions = smokeParticlesRef.current.geometry.attributes.position.array as Float32Array;
+        for (let i = 0; i < positions.length / 3; i++) {
+          positions[i * 3] = (Math.random() - 0.5) * 0.12;
+          positions[i * 3 + 1] = 1.75 + i * 0.045;
+          positions[i * 3 + 2] = (Math.random() - 0.5) * 0.12;
+        }
+        smokeParticlesRef.current.geometry.attributes.position.needsUpdate = true;
+      }
+    }
+    if (flameLightRef.current) {
+      flameLightRef.current.intensity = isFlameLit ? 3.6 : 0.2;
+    }
+  }, [isFlameLit]);
+
+  useEffect(() => {
+    onToggleFlameRef.current = onToggleFlame;
+    onSelectPhotoRef.current = onSelectPhoto;
+    onOpenCardRef.current = onOpenCard;
+  }, [onToggleFlame, onSelectPhoto, onOpenCard]);
+
   const confettiMeshesRef = useRef<{
     mesh: THREE.Mesh;
     vx: number;
@@ -678,7 +716,7 @@ export const Celebration3DScene: React.FC<Props> = ({
 
       // Animate 3D Flame
       if (flameGroupRef.current) {
-        if (isFlameLit) {
+        if (isFlameLitRef.current) {
           flameGroupRef.current.visible = true;
 
           // Organic flame flicker
@@ -827,7 +865,7 @@ export const Celebration3DScene: React.FC<Props> = ({
       // Check hits on cake / candle
       const cakeHits = raycasterRef.current.intersectObjects(cakeGroup.children, true);
       if (cakeHits.length > 0) {
-        onToggleFlame();
+        onToggleFlameRef.current();
         return;
       }
 
@@ -836,7 +874,7 @@ export const Celebration3DScene: React.FC<Props> = ({
         const cardHits = raycasterRef.current.intersectObject(cardMeshRef.current);
         if (cardHits.length > 0) {
           sounds.playChime();
-          onOpenCard();
+          onOpenCardRef.current();
           return;
         }
       }
@@ -847,7 +885,7 @@ export const Celebration3DScene: React.FC<Props> = ({
         const hit = photoHits[0].object;
         if (hit.userData && typeof hit.userData.frameIndex === 'number') {
           sounds.playChime();
-          onSelectPhoto(hit.userData.frameIndex);
+          onSelectPhotoRef.current(hit.userData.frameIndex);
           return;
         }
       }
