@@ -306,31 +306,46 @@ export function createGreetingCardTexture(data: GreetingData): THREE.CanvasTextu
   // Recipient
   ctx.fillStyle = '#343a40';
   ctx.font = 'bold 15px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText(`Untuk: ${data.recipient}`, 35, 160);
+  ctx.fillText(`Untuk: ${data.recipient}`, 35, 150);
 
   // Body message (wrapped text)
-  ctx.font = '13px "Plus Jakarta Sans", sans-serif';
+  ctx.font = '12px "Plus Jakarta Sans", sans-serif';
   ctx.fillStyle = '#495057';
 
-  const lines = [
-    `Selamat atas pencapaian luar biasa ${data.streakDays} hari streak!`,
-    `Konsistensi dan dedikasi yang luar biasa setiap hari tanpa lelah.`,
-    `Pertahankan apimu, terus membara dan capai rekor berikutnya!`,
-    `Semangat selalu, we are so proud of you! ✨`
-  ];
-
-  lines.forEach((line, idx) => {
-    ctx.fillText(line, 35, 192 + idx * 22);
+  const paragraphs = data.message.split('\n');
+  let currentY = 172;
+  paragraphs.forEach((paragraph) => {
+    if (!paragraph.trim()) {
+      currentY += 8;
+      return;
+    }
+    const words = paragraph.split(' ');
+    let currentLine = '';
+    words.forEach((word) => {
+      const testLine = currentLine ? `${currentLine} ${word}` : word;
+      const metrics = ctx.measureText(testLine);
+      if (metrics.width > 440 && currentLine) {
+        ctx.fillText(currentLine, 35, currentY);
+        currentY += 16;
+        currentLine = word;
+      } else {
+        currentLine = testLine;
+      }
+    });
+    if (currentLine) {
+      ctx.fillText(currentLine, 35, currentY);
+      currentY += 16;
+    }
   });
 
   // Stamp / seal in bottom right
   ctx.fillStyle = '#c92a2a';
-  ctx.font = 'bold 12px "Cinzel", serif';
+  ctx.font = 'bold 13px "Cinzel", serif';
   ctx.textAlign = 'right';
-  ctx.fillText(`DARI: ${data.sender}`, 470, 290);
+  ctx.fillText(`DARI: ${data.sender}`, 470, 292);
   ctx.font = '11px sans-serif';
   ctx.fillStyle = '#868e96';
-  ctx.fillText(data.dateStr, 470, 310);
+  ctx.fillText(data.dateStr, 470, 312);
 
   // Little golden star stamp
   ctx.font = '20px sans-serif';
@@ -395,14 +410,49 @@ export function createDefaultPhotoTexture(
   userImgUrl?: string
 ): Promise<THREE.Texture> {
   return new Promise((resolve) => {
-    // If user provided an image URL, load it
-    if (userImgUrl && userImgUrl.startsWith('data:image')) {
+    // If user provided an image URL, load and rasterize to canvas for reliable 3D rendering
+    if (userImgUrl) {
       const img = new Image();
       img.crossOrigin = 'anonymous';
       img.onload = () => {
-        const texture = new THREE.Texture(img);
-        texture.needsUpdate = true;
-        resolve(texture);
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 768;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          // Fill background matching streak card color
+          ctx.fillStyle = index === 0 ? '#fbcfe8' : '#eed5fc';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          const w = img.naturalWidth || img.width || 512;
+          const h = img.naturalHeight || img.height || 768;
+          const imgAspect = w / h;
+          const canvasAspect = canvas.width / canvas.height;
+
+          let drawW = canvas.width;
+          let drawH = canvas.height;
+          let drawX = 0;
+          let drawY = 0;
+
+          if (imgAspect > canvasAspect) {
+            drawH = canvas.width / imgAspect;
+            drawY = (canvas.height - drawH) / 2;
+          } else {
+            drawW = canvas.height * imgAspect;
+            drawX = (canvas.width - drawW) / 2;
+          }
+
+          ctx.drawImage(img, drawX, drawY, drawW, drawH);
+          const texture = new THREE.CanvasTexture(canvas);
+          texture.colorSpace = THREE.SRGBColorSpace;
+          texture.needsUpdate = true;
+          resolve(texture);
+        } else {
+          const texture = new THREE.Texture(img);
+          texture.colorSpace = THREE.SRGBColorSpace;
+          texture.needsUpdate = true;
+          resolve(texture);
+        }
       };
       img.onerror = () => {
         resolve(createProceduralMemoryCard(index, title, badgeText));
