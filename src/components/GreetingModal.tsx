@@ -44,7 +44,7 @@ export const GreetingModal: React.FC<Props> = ({
     >
       <div
         id="greeting-modal-content"
-        className="relative w-full max-w-lg bg-[#faf6ed] text-[#2c221e] rounded-2xl shadow-2xl p-6 sm:p-8 border-4 border-[#e6d7bf] transform transition-all scale-100"
+        className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto bg-[#faf6ed] text-[#2c221e] rounded-2xl shadow-2xl p-5 sm:p-8 border-4 border-[#e6d7bf] transform transition-all scale-100"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close button */}

@@ -88,14 +88,16 @@ export const Celebration3DScene: React.FC<Props> = ({
     sceneRef.current = scene;
     scene.fog = new THREE.FogExp2(0x060c18, 0.015);
 
+    const initialAspect = container.clientWidth / (container.clientHeight || 1);
+    const initialFov = initialAspect < 1.0 ? 54 : 46;
     const camera = new THREE.PerspectiveCamera(
-      48,
-      container.clientWidth / container.clientHeight,
+      initialFov,
+      initialAspect,
       0.1,
       100
     );
     camera.position.set(initialCamPos.x, initialCamPos.y, initialCamPos.z);
-    camera.lookAt(0, 1.4, 0);
+    camera.lookAt(0, initialAspect < 1.0 ? 1.05 : 1.25, 0);
     cameraRef.current = camera;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
@@ -123,7 +125,7 @@ export const Celebration3DScene: React.FC<Props> = ({
 
     // Dynamic flame light (orange/yellow flicker)
     const flameLight = new THREE.PointLight(0xff7711, 3.8, 14, 1.2);
-    flameLight.position.set(0, 2.7, 0);
+    flameLight.position.set(0, 2.3, 0.05);
     flameLight.castShadow = true;
     flameLight.shadow.bias = -0.002;
     scene.add(flameLight);
@@ -175,54 +177,54 @@ export const Celebration3DScene: React.FC<Props> = ({
     scene.add(cakeGroup);
     cakeMeshRef.current = cakeGroup;
 
-    // Ceramic serving plate
-    const plateGeo = new THREE.CylinderGeometry(2.3, 2.0, 0.1, 48);
+    // Ceramic serving plate (proportional size, leaving generous clearance for frames)
+    const plateGeo = new THREE.CylinderGeometry(1.65, 1.45, 0.08, 48);
     const plateMat = new THREE.MeshStandardMaterial({
       color: 0xf5edf0,
       roughness: 0.2,
       metalness: 0.1,
     });
     const plate = new THREE.Mesh(plateGeo, plateMat);
-    plate.position.y = 0.05;
+    plate.position.y = 0.04;
     plate.receiveShadow = true;
     plate.castShadow = true;
     cakeGroup.add(plate);
 
     // Cake bottom layer (sponge & cream)
-    const cakeBottomGeo = new THREE.CylinderGeometry(1.8, 1.8, 0.9, 48);
+    const cakeBottomGeo = new THREE.CylinderGeometry(1.3, 1.3, 0.72, 48);
     const cakeBottomMat = new THREE.MeshStandardMaterial({
       color: 0xf6cf97, // biscuit / yellow sponge cake
       roughness: 0.6,
     });
     const cakeBottom = new THREE.Mesh(cakeBottomGeo, cakeBottomMat);
-    cakeBottom.position.y = 0.55;
+    cakeBottom.position.y = 0.42;
     cakeBottom.castShadow = true;
     cakeBottom.receiveShadow = true;
     cakeGroup.add(cakeBottom);
 
     // Red strawberry jam ribbon stripe around cake (matching reference photo)
-    const ribbonGeo = new THREE.CylinderGeometry(1.82, 1.82, 0.22, 48);
+    const ribbonGeo = new THREE.CylinderGeometry(1.315, 1.315, 0.18, 48);
     const ribbonMat = new THREE.MeshStandardMaterial({
       color: 0xb52233,
       roughness: 0.3,
     });
     const ribbon = new THREE.Mesh(ribbonGeo, ribbonMat);
-    ribbon.position.y = 0.45;
+    ribbon.position.y = 0.35;
     cakeGroup.add(ribbon);
 
     // Cake top frosting layer
-    const cakeTopGeo = new THREE.CylinderGeometry(1.82, 1.82, 0.35, 48);
+    const cakeTopGeo = new THREE.CylinderGeometry(1.315, 1.315, 0.26, 48);
     const cakeTopMat = new THREE.MeshStandardMaterial({
       color: 0xffa8b8, // strawberry pink cream frosting
       roughness: 0.4,
     });
     const cakeTop = new THREE.Mesh(cakeTopGeo, cakeTopMat);
-    cakeTop.position.y = 1.1;
+    cakeTop.position.y = 0.86;
     cakeTop.castShadow = true;
     cakeGroup.add(cakeTop);
 
     // Cream swirls around the bottom rim of cake
-    const creamSwirlGeo = new THREE.SphereGeometry(0.16, 12, 12);
+    const creamSwirlGeo = new THREE.SphereGeometry(0.11, 12, 12);
     creamSwirlGeo.scale(1, 1.3, 1);
     const creamMat = new THREE.MeshStandardMaterial({
       color: 0xfff6f0,
@@ -231,89 +233,89 @@ export const Celebration3DScene: React.FC<Props> = ({
     const swirlCount = 20;
     for (let i = 0; i < swirlCount; i++) {
       const angle = (i / swirlCount) * Math.PI * 2;
-      const sx = Math.cos(angle) * 1.85;
-      const sz = Math.sin(angle) * 1.85;
+      const sx = Math.cos(angle) * 1.34;
+      const sz = Math.sin(angle) * 1.34;
       const swirl = new THREE.Mesh(creamSwirlGeo, creamMat);
-      swirl.position.set(sx, 0.18, sz);
+      swirl.position.set(sx, 0.12, sz);
       swirl.rotation.y = angle;
       swirl.castShadow = true;
       cakeGroup.add(swirl);
     }
 
     // Pocky / chocolate biscuit sticks angled upwards (like in reference image!)
-    const stickGeo = new THREE.CylinderGeometry(0.045, 0.045, 1.6, 16);
+    const stickGeo = new THREE.CylinderGeometry(0.035, 0.035, 1.3, 16);
     const stickMat = new THREE.MeshStandardMaterial({
       color: 0xd9823f, // biscuit color
       roughness: 0.7,
     });
     const stick1 = new THREE.Mesh(stickGeo, stickMat);
-    stick1.position.set(0.35, 1.7, -0.2);
+    stick1.position.set(0.28, 1.35, -0.15);
     stick1.rotation.z = -0.15;
     stick1.rotation.x = -0.1;
     stick1.castShadow = true;
     cakeGroup.add(stick1);
 
     const stick2 = new THREE.Mesh(stickGeo, stickMat);
-    stick2.position.set(0.55, 1.65, -0.15);
+    stick2.position.set(0.45, 1.3, -0.12);
     stick2.rotation.z = -0.28;
     stick2.rotation.y = 0.2;
     stick2.castShadow = true;
     cakeGroup.add(stick2);
 
     // Strawberries on top of cake
-    const strawberryGeo = new THREE.ConeGeometry(0.24, 0.42, 16);
+    const strawberryGeo = new THREE.ConeGeometry(0.18, 0.34, 16);
     const strawberryMat = new THREE.MeshStandardMaterial({
       color: 0xd6182f,
       roughness: 0.25,
       metalness: 0.05,
     });
     const sb1 = new THREE.Mesh(strawberryGeo, strawberryMat);
-    sb1.position.set(-0.45, 1.4, 0.2);
+    sb1.position.set(-0.35, 1.1, 0.15);
     sb1.rotation.x = Math.PI * 0.95;
     sb1.rotation.z = 0.2;
     sb1.castShadow = true;
     cakeGroup.add(sb1);
 
     const sb2 = new THREE.Mesh(strawberryGeo, strawberryMat);
-    sb2.position.set(-0.15, 1.4, 0.35);
+    sb2.position.set(-0.12, 1.1, 0.26);
     sb2.rotation.x = Math.PI * 0.92;
     sb2.rotation.z = -0.15;
     sb2.castShadow = true;
     cakeGroup.add(sb2);
 
     // Green leaves on cake top
-    const leafGeo = new THREE.BoxGeometry(0.2, 0.03, 0.25);
+    const leafGeo = new THREE.BoxGeometry(0.15, 0.025, 0.2);
     const leafMat = new THREE.MeshStandardMaterial({ color: 0x409144, roughness: 0.5 });
     const leaf = new THREE.Mesh(leafGeo, leafMat);
-    leaf.position.set(-0.55, 1.3, 0.4);
+    leaf.position.set(-0.42, 1.02, 0.3);
     leaf.rotation.y = 0.5;
     cakeGroup.add(leaf);
 
     // Cake candle with red/white diagonal candy stripe texture
-    const candleGeo = new THREE.CylinderGeometry(0.065, 0.065, 0.75, 20);
+    const candleGeo = new THREE.CylinderGeometry(0.055, 0.055, 0.62, 20);
     const candleMat = new THREE.MeshStandardMaterial({
       map: createCandleTexture(),
       roughness: 0.3,
     });
     const candle = new THREE.Mesh(candleGeo, candleMat);
-    candle.position.set(0, 1.6, 0.05);
+    candle.position.set(0, 1.25, 0.04);
     candle.castShadow = true;
     cakeGroup.add(candle);
 
     // Candle wick
-    const wickGeo = new THREE.CylinderGeometry(0.012, 0.012, 0.12, 8);
+    const wickGeo = new THREE.CylinderGeometry(0.01, 0.01, 0.1, 8);
     const wickMat = new THREE.MeshBasicMaterial({ color: 0x222222 });
     const wick = new THREE.Mesh(wickGeo, wickMat);
-    wick.position.set(0, 2.02, 0.05);
+    wick.position.set(0, 1.6, 0.04);
     cakeGroup.add(wick);
 
     // 3D Shiny Gold "500" & Fire Badge placed proudly on the cake
     const badgeGroup = new THREE.Group();
-    badgeGroup.position.set(0, 1.45, 0.65);
+    badgeGroup.position.set(0, 1.12, 0.5);
     badgeGroup.rotation.x = -0.12;
 
     // Glowing base backing
-    const badgePlateGeo = new THREE.BoxGeometry(1.3, 0.46, 0.08);
+    const badgePlateGeo = new THREE.BoxGeometry(1.15, 0.4, 0.06);
     const badgePlateMat = new THREE.MeshStandardMaterial({
       color: 0x1f0e04,
       metalness: 0.8,
@@ -324,7 +326,7 @@ export const Celebration3DScene: React.FC<Props> = ({
     badgeGroup.add(badgePlate);
 
     // Badge border in polished gold
-    const borderGeo = new THREE.BoxGeometry(1.36, 0.52, 0.04);
+    const borderGeo = new THREE.BoxGeometry(1.2, 0.45, 0.03);
     const borderMat = new THREE.MeshStandardMaterial({
       color: 0xffaa00,
       metalness: 0.9,
@@ -357,7 +359,7 @@ export const Celebration3DScene: React.FC<Props> = ({
     bctx.fillText('DAYS STREAK', 256, 140);
 
     const badgeTex = new THREE.CanvasTexture(badgeCanvas);
-    const badgeTextGeo = new THREE.PlaneGeometry(1.24, 0.42);
+    const badgeTextGeo = new THREE.PlaneGeometry(1.1, 0.36);
     const badgeTextMat = new THREE.MeshBasicMaterial({ map: badgeTex, transparent: true });
     const badgeText = new THREE.Mesh(badgeTextGeo, badgeTextMat);
     badgeText.position.z = 0.05;
@@ -366,13 +368,13 @@ export const Celebration3DScene: React.FC<Props> = ({
 
     // --- 6. The Blazing 3D Streak Flame 🔥 ---
     const flameGroup = new THREE.Group();
-    flameGroup.position.set(0, 2.12, 0.05);
+    flameGroup.position.set(0, 1.75, 0.04);
     cakeGroup.add(flameGroup);
     flameGroupRef.current = flameGroup;
 
     // Outer flame teardrop mesh
-    const outerFlameGeo = new THREE.ConeGeometry(0.18, 0.58, 24);
-    outerFlameGeo.translate(0, 0.26, 0);
+    const outerFlameGeo = new THREE.ConeGeometry(0.16, 0.52, 24);
+    outerFlameGeo.translate(0, 0.24, 0);
     const outerFlameMat = new THREE.MeshBasicMaterial({
       color: 0xff3b00,
       transparent: true,
@@ -383,8 +385,8 @@ export const Celebration3DScene: React.FC<Props> = ({
     flameGroup.add(outerFlame);
 
     // Inner bright white/yellow core
-    const innerFlameGeo = new THREE.ConeGeometry(0.09, 0.36, 16);
-    innerFlameGeo.translate(0, 0.16, 0);
+    const innerFlameGeo = new THREE.ConeGeometry(0.08, 0.32, 16);
+    innerFlameGeo.translate(0, 0.14, 0);
     const innerFlameMat = new THREE.MeshBasicMaterial({
       color: 0xfff4c2,
       transparent: true,
@@ -395,7 +397,7 @@ export const Celebration3DScene: React.FC<Props> = ({
     flameGroup.add(innerFlame);
 
     // Glowing halo around flame
-    const haloGeo = new THREE.SphereGeometry(0.35, 16, 16);
+    const haloGeo = new THREE.SphereGeometry(0.3, 16, 16);
     const haloMat = new THREE.MeshBasicMaterial({
       color: 0xff8800,
       transparent: true,
@@ -403,7 +405,7 @@ export const Celebration3DScene: React.FC<Props> = ({
       blending: THREE.AdditiveBlending,
     });
     const halo = new THREE.Mesh(haloGeo, haloMat);
-    halo.position.y = 0.28;
+    halo.position.y = 0.24;
     flameGroup.add(halo);
 
     // Rising flame spark embers
@@ -412,9 +414,9 @@ export const Celebration3DScene: React.FC<Props> = ({
     const emberPositions = new Float32Array(emberCount * 3);
     const emberVelocities = new Float32Array(emberCount * 3);
     for (let i = 0; i < emberCount; i++) {
-      emberPositions[i * 3] = (Math.random() - 0.5) * 0.2;
-      emberPositions[i * 3 + 1] = Math.random() * 0.9 + 2.1;
-      emberPositions[i * 3 + 2] = (Math.random() - 0.5) * 0.2 + 0.05;
+      emberPositions[i * 3] = (Math.random() - 0.5) * 0.16;
+      emberPositions[i * 3 + 1] = Math.random() * 0.8 + 1.8;
+      emberPositions[i * 3 + 2] = (Math.random() - 0.5) * 0.16 + 0.04;
 
       emberVelocities[i * 3] = (Math.random() - 0.5) * 0.02;
       emberVelocities[i * 3 + 1] = Math.random() * 0.03 + 0.02;
@@ -438,7 +440,7 @@ export const Celebration3DScene: React.FC<Props> = ({
     const smokePositions = new Float32Array(smokeCount * 3);
     for (let i = 0; i < smokeCount; i++) {
       smokePositions[i * 3] = (Math.random() - 0.5) * 0.1;
-      smokePositions[i * 3 + 1] = 2.1 + i * 0.05;
+      smokePositions[i * 3 + 1] = 1.75 + i * 0.045;
       smokePositions[i * 3 + 2] = (Math.random() - 0.5) * 0.1;
     }
     smokeGeo.setAttribute('position', new THREE.BufferAttribute(smokePositions, 3));
@@ -453,12 +455,13 @@ export const Celebration3DScene: React.FC<Props> = ({
     scene.add(smokePoints);
     smokeParticlesRef.current = smokePoints;
 
-    // --- 7. Standing 3D Photo Frames (Arranged in arc like reference image) ---
+    // --- 7. Standing 3D Photo Frames (Arranged in clear arc around cake with zero collision) ---
+    // The frames sit gracefully behind and around the cake, matching reference composition
     const framePositions = [
-      { x: -3.85, z: 0.65, rotY: 0.44, tilt: -0.12 }, // Far left
-      { x: -2.05, z: -0.15, rotY: 0.22, tilt: -0.12 }, // Inner left
-      { x: 2.05, z: -0.15, rotY: -0.22, tilt: -0.12 }, // Inner right
-      { x: 3.85, z: 0.65, rotY: -0.44, tilt: -0.12 }, // Far right
+      { x: -4.1, z: 0.35, rotY: 0.46, tilt: -0.12 }, // Far left
+      { x: -2.4, z: -0.65, rotY: 0.22, tilt: -0.12 }, // Inner left (behind-left, generous clearance from cake plate)
+      { x: 2.4, z: -0.65, rotY: -0.22, tilt: -0.12 }, // Inner right (behind-right, generous clearance from cake plate)
+      { x: 4.1, z: 0.35, rotY: -0.46, tilt: -0.12 }, // Far right
     ];
 
     const woodTex = createWoodFrameTexture();
@@ -472,12 +475,12 @@ export const Celebration3DScene: React.FC<Props> = ({
 
       // Frame container tilted backwards slightly on table
       const frameAssembly = new THREE.Group();
-      frameAssembly.position.y = 0.95;
+      frameAssembly.position.y = 0.82;
       frameAssembly.rotation.x = pos.tilt;
       frameGroup.add(frameAssembly);
 
       // Outer wooden beveled frame
-      const frameOuterGeo = new THREE.BoxGeometry(1.65, 2.05, 0.12);
+      const frameOuterGeo = new THREE.BoxGeometry(1.35, 1.72, 0.1);
       const frameOuterMat = new THREE.MeshStandardMaterial({
         map: woodTex,
         roughness: 0.4,
@@ -489,7 +492,7 @@ export const Celebration3DScene: React.FC<Props> = ({
       frameAssembly.add(frameOuter);
 
       // Beveled inner border
-      const innerBevelGeo = new THREE.BoxGeometry(1.4, 1.8, 0.14);
+      const innerBevelGeo = new THREE.BoxGeometry(1.18, 1.52, 0.12);
       const innerBevelMat = new THREE.MeshStandardMaterial({
         color: 0xdfb080,
         roughness: 0.3,
@@ -499,7 +502,7 @@ export const Celebration3DScene: React.FC<Props> = ({
       frameAssembly.add(innerBevel);
 
       // Photo picture plane
-      const photoGeo = new THREE.PlaneGeometry(1.24, 1.64);
+      const photoGeo = new THREE.PlaneGeometry(1.06, 1.38);
       const photoItem = photos[idx] || {
         id: idx,
         title: `Memory #${idx + 1}`,
@@ -510,7 +513,7 @@ export const Celebration3DScene: React.FC<Props> = ({
       // Create photo material
       const photoMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
       const photoMesh = new THREE.Mesh(photoGeo, photoMat);
-      photoMesh.position.z = 0.08;
+      photoMesh.position.z = 0.07;
       photoMesh.userData = { frameIndex: idx, type: 'photo' };
       frameAssembly.add(photoMesh);
       photoMeshes.push(photoMesh);
@@ -527,13 +530,13 @@ export const Celebration3DScene: React.FC<Props> = ({
       });
 
       // Frame back kickstand resting on table
-      const standGeo = new THREE.CylinderGeometry(0.04, 0.04, 1.3, 8);
+      const standGeo = new THREE.CylinderGeometry(0.035, 0.035, 1.1, 8);
       const standMat = new THREE.MeshStandardMaterial({
         color: 0x5a341a,
         roughness: 0.6,
       });
       const stand = new THREE.Mesh(standGeo, standMat);
-      stand.position.set(0, -0.2, -0.45);
+      stand.position.set(0, -0.15, -0.38);
       stand.rotation.x = -0.45;
       stand.castShadow = true;
       frameGroup.add(stand);
@@ -541,14 +544,14 @@ export const Celebration3DScene: React.FC<Props> = ({
 
     photoMeshesRef.current = photoMeshes;
 
-    // --- 8. Greeting Card on the Table (Front Right) ---
+    // --- 8. Greeting Card on the Table (Front Right, clear from cake and frames) ---
     const cardGroup = new THREE.Group();
-    cardGroup.position.set(2.4, 0.04, 2.6);
-    cardGroup.rotation.y = -0.22; // angled towards viewer
+    cardGroup.position.set(2.3, 0.04, 2.2);
+    cardGroup.rotation.y = -0.2; // angled towards viewer
     scene.add(cardGroup);
 
     const cardTex = createGreetingCardTexture(greeting);
-    const cardGeo = new THREE.PlaneGeometry(1.8, 1.2);
+    const cardGeo = new THREE.PlaneGeometry(1.6, 1.05);
     const cardMat = new THREE.MeshStandardMaterial({
       map: cardTex,
       roughness: 0.7,
@@ -563,7 +566,7 @@ export const Celebration3DScene: React.FC<Props> = ({
     cardMeshRef.current = cardMesh;
 
     // Card drop shadow plane underneath
-    const shadowGeo = new THREE.PlaneGeometry(1.86, 1.26);
+    const shadowGeo = new THREE.PlaneGeometry(1.66, 1.11);
     const shadowMat = new THREE.MeshBasicMaterial({
       color: 0x000000,
       transparent: true,
@@ -653,14 +656,25 @@ export const Celebration3DScene: React.FC<Props> = ({
       const idleFloatX = Math.sin(elapsedTime * 0.4) * 0.12;
       const idleFloatY = Math.cos(elapsedTime * 0.5) * 0.08;
 
-      const radius = 7.6;
+      // Dynamic camera radius and responsive framing for mobile portrait view
+      const aspect = container.clientWidth / (container.clientHeight || 1);
+      const baseRadius = 7.6;
+      // On mobile screens (aspect < 1.0), back up smoothly so all 4 photo frames and cake are in full view
+      const radius = aspect < 1.0
+        ? baseRadius * Math.min(1.85, 1.0 / Math.pow(Math.max(aspect, 0.42), 0.72))
+        : baseRadius;
+
       const theta = currentAngleRef.current.theta;
       const phi = currentAngleRef.current.phi;
 
       camera.position.x = Math.sin(theta) * radius * Math.cos(phi) + idleFloatX;
-      camera.position.y = Math.sin(phi) * radius + 1.2 + idleFloatY;
+      // On mobile portrait, position camera slightly higher to frame cake nicely above the bottom controls
+      const camYOffset = aspect < 1.0 ? 1.35 : 1.15;
+      camera.position.y = Math.sin(phi) * radius + camYOffset + idleFloatY;
       camera.position.z = Math.cos(theta) * radius * Math.cos(phi);
-      camera.lookAt(0, 1.4, 0);
+      
+      const lookTargetY = aspect < 1.0 ? 1.05 : 1.25;
+      camera.lookAt(0, lookTargetY, 0);
 
       // Animate 3D Flame
       if (flameGroupRef.current) {
@@ -686,10 +700,10 @@ export const Celebration3DScene: React.FC<Props> = ({
               positions[i * 3] += Math.sin(elapsedTime * 4 + i) * 0.003;
 
               // Reset when reaching top
-              if (positions[i * 3 + 1] > 3.8) {
-                positions[i * 3 + 1] = 2.15;
-                positions[i * 3] = (Math.random() - 0.5) * 0.2;
-                positions[i * 3 + 2] = (Math.random() - 0.5) * 0.2 + 0.05;
+              if (positions[i * 3 + 1] > 3.3) {
+                positions[i * 3 + 1] = 1.8;
+                positions[i * 3] = (Math.random() - 0.5) * 0.16;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * 0.16 + 0.04;
               }
             }
             embersPointsRef.current.geometry.attributes.position.needsUpdate = true;
@@ -713,8 +727,8 @@ export const Celebration3DScene: React.FC<Props> = ({
             for (let i = 0; i < smokeCount; i++) {
               positions[i * 3 + 1] += 0.015;
               positions[i * 3] += Math.sin(elapsedTime * 2 + i) * 0.004;
-              if (positions[i * 3 + 1] > 3.6) {
-                positions[i * 3 + 1] = 2.05;
+              if (positions[i * 3 + 1] > 3.2) {
+                positions[i * 3 + 1] = 1.75;
               }
             }
             smokeParticlesRef.current.geometry.attributes.position.needsUpdate = true;
@@ -802,37 +816,11 @@ export const Celebration3DScene: React.FC<Props> = ({
       isDraggingRef.current = false;
     };
 
-    // Touch events for mobile
-    const handleTouchStart = (e: TouchEvent) => {
-      if (e.touches.length === 1) {
-        isDraggingRef.current = true;
-        previousMousePositionRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-      }
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (!isDraggingRef.current || e.touches.length !== 1) return;
-      const deltaX = e.touches[0].clientX - previousMousePositionRef.current.x;
-      const deltaY = e.touches[0].clientY - previousMousePositionRef.current.y;
-
-      cameraTargetAngleRef.current.theta -= deltaX * 0.005;
-      cameraTargetAngleRef.current.phi += deltaY * 0.004;
-
-      cameraTargetAngleRef.current.theta = Math.max(-0.65, Math.min(0.65, cameraTargetAngleRef.current.theta));
-      cameraTargetAngleRef.current.phi = Math.max(0.12, Math.min(0.55, cameraTargetAngleRef.current.phi));
-
-      previousMousePositionRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    };
-
-    const handleTouchEnd = () => {
-      isDraggingRef.current = false;
-    };
-
-    // Click handler for 3D elements (clicking cake/candle or photo frame or card)
-    const handleClick = (e: MouseEvent) => {
+    // Interaction dispatcher supporting both desktop click and mobile tap
+    const triggerInteractionAt = (clientX: number, clientY: number) => {
       const rect = container.getBoundingClientRect();
-      mouseRef.current.x = ((e.clientX - rect.left) / container.clientWidth) * 2 - 1;
-      mouseRef.current.y = -((e.clientY - rect.top) / container.clientHeight) * 2 + 1;
+      mouseRef.current.x = ((clientX - rect.left) / container.clientWidth) * 2 - 1;
+      mouseRef.current.y = -((clientY - rect.top) / container.clientHeight) * 2 + 1;
 
       raycasterRef.current.setFromCamera(mouseRef.current, camera);
 
@@ -865,12 +853,67 @@ export const Celebration3DScene: React.FC<Props> = ({
       }
     };
 
-    // Resize listener
+    // Touch events for mobile (supports smooth drag rotation and direct tap interaction)
+    let touchStartPos = { x: 0, y: 0 };
+    let touchStartTime = 0;
+    let didTouchDrag = false;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 1) {
+        isDraggingRef.current = true;
+        didTouchDrag = false;
+        touchStartPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        touchStartTime = Date.now();
+        previousMousePositionRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!isDraggingRef.current || e.touches.length !== 1) return;
+      const deltaX = e.touches[0].clientX - previousMousePositionRef.current.x;
+      const deltaY = e.touches[0].clientY - previousMousePositionRef.current.y;
+
+      if (Math.hypot(e.touches[0].clientX - touchStartPos.x, e.touches[0].clientY - touchStartPos.y) > 6) {
+        didTouchDrag = true;
+      }
+
+      cameraTargetAngleRef.current.theta -= deltaX * 0.005;
+      cameraTargetAngleRef.current.phi += deltaY * 0.004;
+
+      cameraTargetAngleRef.current.theta = Math.max(-0.65, Math.min(0.65, cameraTargetAngleRef.current.theta));
+      cameraTargetAngleRef.current.phi = Math.max(0.10, Math.min(0.55, cameraTargetAngleRef.current.phi));
+
+      previousMousePositionRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      isDraggingRef.current = false;
+      // Responsive tap detection on mobile touch screens
+      if (!didTouchDrag && e.changedTouches.length === 1) {
+        const touch = e.changedTouches[0];
+        const dist = Math.hypot(touch.clientX - touchStartPos.x, touch.clientY - touchStartPos.y);
+        const timeDiff = Date.now() - touchStartTime;
+        if (dist < 10 && timeDiff < 400) {
+          triggerInteractionAt(touch.clientX, touch.clientY);
+        }
+      }
+    };
+
+    // Click handler for 3D elements on desktop
+    const handleClick = (e: MouseEvent) => {
+      triggerInteractionAt(e.clientX, e.clientY);
+    };
+
+    // Resize listener with mobile aspect ratio adjustment
     const handleResize = () => {
       if (!container || !renderer || !camera) return;
-      camera.aspect = container.clientWidth / container.clientHeight;
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      const aspect = width / height;
+      camera.aspect = aspect;
+      camera.fov = aspect < 1.0 ? 54 : 46;
       camera.updateProjectionMatrix();
-      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setSize(width, height);
     };
 
     window.addEventListener('resize', handleResize);
@@ -947,7 +990,7 @@ export const Celebration3DScene: React.FC<Props> = ({
       const mesh = new THREE.Mesh(geo, mat);
 
       // Start right at cake top / streak flame
-      mesh.position.set((Math.random() - 0.5) * 0.6, 2.2, (Math.random() - 0.5) * 0.6);
+      mesh.position.set((Math.random() - 0.5) * 0.5, 1.8, (Math.random() - 0.5) * 0.5);
 
       const angle = Math.random() * Math.PI * 2;
       const speed = Math.random() * 0.15 + 0.08;
@@ -972,7 +1015,7 @@ export const Celebration3DScene: React.FC<Props> = ({
     <div
       ref={mountRef}
       id="three-canvas-container"
-      className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing select-none"
+      className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing select-none touch-none overflow-hidden"
     />
   );
 };

@@ -46,7 +46,7 @@ export const PhotoDetailModal: React.FC<Props> = ({
     >
       <div
         id="photo-modal-content"
-        className="relative w-full max-w-md bg-stone-900 text-stone-100 rounded-2xl shadow-2xl p-6 border border-stone-800"
+        className="relative w-full max-w-md max-h-[90vh] overflow-y-auto bg-stone-900 text-stone-100 rounded-2xl shadow-2xl p-5 sm:p-6 border border-stone-800"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}

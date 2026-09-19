@@ -5,6 +5,7 @@ import { PhotoDetailModal } from './components/PhotoDetailModal';
 import { OverlayControls } from './components/OverlayControls';
 import { GreetingData, PhotoFrameData } from './types';
 import { sounds } from './utils/audio';
+import { musicManager } from './utils/musicManager';
 
 export default function App() {
   const [greeting, setGreeting] = useState<GreetingData>({
@@ -92,6 +93,9 @@ export default function App() {
       if (e.code === 'Space') {
         e.preventDefault();
         handleToggleFlame();
+      } else if (e.code === 'KeyM') {
+        e.preventDefault();
+        musicManager.togglePlay();
       }
     };
 
