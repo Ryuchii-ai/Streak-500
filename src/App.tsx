@@ -30,25 +30,25 @@ and im sorry if i've made you confused all this time. BUT please believe me...de
       id: 1,
       title: 'Day 100 (awal)',
       caption: 'Lencana Runtunan telah ditingkatkan @lauu • 100 Hari obrolan yang sedang berlangsung',
-      url: '/assets/api-100.svg',
+      url: '/assets/api-100.jpg',
     },
     {
       id: 2,
       title: 'Day 300 (running)',
       caption: 'Lencana Runtunan telah ditingkatkan @lauu • 300 Hari obrolan • Pesan terkirim 10,8 RB • Hari pertemanan 303',
-      url: '/assets/api-300.svg',
+      url: '/assets/api-300.jpg',
     },
     {
       id: 3,
       title: 'Day 400 (always)',
       caption: 'Lencana Runtunan telah ditingkatkan @lauu • 400 Hari obrolan • Pesan terkirim 11,4 RB • Hari pertemanan 413',
-      url: '/assets/api-400.svg',
+      url: '/assets/api-400.jpg',
     },
     {
       id: 4,
       title: 'Day 500 (still...)',
       caption: 'Lencana Runtunan telah ditingkatkan @lauu • 500 Hari obrolan • Pesan terkirim 12,1 rb • Hari pertemanan 540',
-      url: '/assets/api-500.svg',
+      url: '/assets/api-500.jpg',
     },
   ];
 
@@ -66,6 +66,40 @@ and im sorry if i've made you confused all this time. BUT please believe me...de
     }
     return DEFAULT_PHOTOS;
   });
+
+  // Auto-play music as soon as website opens
+  useEffect(() => {
+    // 1. Immediately attempt autoplay
+    const attemptPlay = async () => {
+      try {
+        await musicManager.loadDefaultTrack();
+        await musicManager.play();
+      } catch (err) {
+        console.log('Autoplay waiting for user gesture:', err);
+      }
+    };
+    attemptPlay();
+
+    // 2. Fallback: if browser blocks unprompted audio autoplay,
+    // trigger playback on the very first user interaction anywhere on the window
+    const handleFirstGesture = () => {
+      musicManager.play().catch(() => {});
+      removeGestureListeners();
+    };
+
+    const gestureEvents = ['click', 'touchstart', 'pointerdown', 'keydown', 'mousedown'];
+    const removeGestureListeners = () => {
+      gestureEvents.forEach((evt) => window.removeEventListener(evt, handleFirstGesture));
+    };
+
+    gestureEvents.forEach((evt) =>
+      window.addEventListener(evt, handleFirstGesture, { passive: true })
+    );
+
+    return () => {
+      removeGestureListeners();
+    };
+  }, []);
 
   const handleUpdatePhoto = (index: number, updated: Partial<PhotoFrameData>) => {
     setPhotos((prev) => {

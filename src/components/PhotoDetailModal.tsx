@@ -79,10 +79,10 @@ export const PhotoDetailModal: React.FC<Props> = ({
   };
 
   const defaultAssetUrls = [
-    '/assets/api-100.svg',
-    '/assets/api-300.svg',
-    '/assets/api-400.svg',
-    '/assets/api-500.svg',
+    '/assets/api-100.jpg',
+    '/assets/api-300.jpg',
+    '/assets/api-400.jpg',
+    '/assets/api-500.jpg',
   ];
 
   const isCustomPhoto = currentPhoto.url && !defaultAssetUrls.includes(currentPhoto.url);

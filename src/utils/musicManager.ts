@@ -25,6 +25,7 @@ class MusicManager {
   private isMuted: boolean = false;
 
   private isRendering: boolean = false;
+  private loadPromise: Promise<void> | null = null;
   private listeners: Set<MusicStateListener> = new Set();
   private animFrameId: number | null = null;
 
@@ -91,23 +92,55 @@ class MusicManager {
     return data;
   }
 
-  // Pre-load or ensure the synthesized "Memories" buffer is ready
+  // Pre-load or ensure the default track is ready
   public async loadDefaultTrack(): Promise<void> {
-    if (this.currentBuffer || this.isRendering) return;
+    if (this.currentBuffer) return;
+    if (this.loadPromise) return this.loadPromise;
+
     this.initAudio();
     if (!this.ctx) return;
 
-    this.isRendering = true;
-    try {
-      this.currentBuffer = await renderMemoriesAudioBuffer(this.ctx);
-      this.duration = this.currentBuffer.duration;
-      this.trackName = 'Maroon 5 - Memories (Piano Instrumental)';
-      this.notifyState();
-    } catch (err) {
-      console.error('Error rendering piano audio buffer:', err);
-    } finally {
-      this.isRendering = false;
-    }
+    this.loadPromise = (async () => {
+      this.isRendering = true;
+      try {
+        let loaded = false;
+        // Check for custom mp3 uploaded to public/assets/lagu-streak-500.mp3
+        const candidatePaths = ['/assets/lagu-streak-500.mp3', '/lagu-streak-500.mp3'];
+        for (const path of candidatePaths) {
+          try {
+            const res = await fetch(path);
+            if (res.ok) {
+              const arrayBuffer = await res.arrayBuffer();
+              if (this.ctx) {
+                const decoded = await this.ctx.decodeAudioData(arrayBuffer);
+                this.currentBuffer = decoded;
+                this.duration = decoded.duration;
+                this.trackName = 'Streak 500 Soundtrack';
+                this.notifyState();
+                loaded = true;
+                break;
+              }
+            }
+          } catch (e) {
+            console.warn(`Could not load audio from ${path}:`, e);
+          }
+        }
+
+        if (!loaded && this.ctx) {
+          this.currentBuffer = await renderMemoriesAudioBuffer(this.ctx);
+          this.duration = this.currentBuffer.duration;
+          this.trackName = 'Maroon 5 - Memories (Piano Instrumental)';
+          this.notifyState();
+        }
+      } catch (err) {
+        console.error('Error loading audio track:', err);
+      } finally {
+        this.isRendering = false;
+        this.loadPromise = null;
+      }
+    })();
+
+    return this.loadPromise;
   }
 
   // Load custom user uploaded audio file (MP3, WAV, M4A, etc.)
@@ -133,6 +166,14 @@ class MusicManager {
   public async play(): Promise<void> {
     this.initAudio();
     if (!this.ctx) return;
+
+    if (this.ctx.state === 'suspended') {
+      try {
+        await this.ctx.resume();
+      } catch (e) {
+        // Will be resumed on next user gesture if browser blocked unprompted resume
+      }
+    }
 
     if (!this.currentBuffer) {
       await this.loadDefaultTrack();
