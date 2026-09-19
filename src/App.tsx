@@ -146,12 +146,12 @@ export default function App() {
         onSaveGreeting={(updated) => setGreeting(updated)}
       />
 
-      {/* Photo Frame Detail & Upload Modal */}
+      {/* Photo Frame Detail & Showcase Modal */}
       <PhotoDetailModal
         selectedIndex={selectedPhotoIndex}
         onClose={() => setSelectedPhotoIndex(null)}
         photos={photos}
-        onUpdatePhoto={handleUpdatePhoto}
+        onSelectPhoto={(idx) => setSelectedPhotoIndex(idx)}
       />
     </main>
   );
