@@ -12,11 +12,17 @@ export default function App() {
     recipient: 'Hani (@lauu)',
     sender: 'Rahulll',
     title: 'CONGRATS 500 DAYS STREAK!',
-    message: `what i've been trying to hold onto all this time wasn't the streak.
-it was never really about the streak....
-because all this time...it was always....
+    message: `What I’ve been trying to hold onto all this time wasn’t the streak.
 
-and im sorry if i've made you confused all this time. BUT please believe me...deep down, im still the same. I haven't changed`,
+It was never really about the streak…
+
+Because all this time… it was always about u.
+
+Thank you for your time, for every moment, and for everything that happened between us.
+
+And I’m sorry if I’ve confused you all this time. BUT please believe me… deep down, I’m still the same.
+
+I haven’t changed.`,
     streakDays: 500,
     dateStr: new Date().toLocaleDateString('id-ID', {
       day: 'numeric',
